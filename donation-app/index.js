@@ -11,7 +11,7 @@ var mysql = require('mysql');
 // console.log(web3.eth.accounts[0]);
 var app = express();
 
-app.set('views', __dirname + '/src');
+app.set('views', __dirname + '/src/views');
 app.engine('html', engines.ejs);
 app.set('view engine', 'html');
 

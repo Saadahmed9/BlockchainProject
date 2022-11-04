@@ -24,8 +24,9 @@
       <% for (var i=0;i<result.length;i++){ %>
         <div id="campaignCard" class="card" class="row">
           <div class="card-body">
-            <h5 class="card-title"><%= result[i].description %></h5>
-            <p class="card-text"><%= result[i].description %></p>
+            <h5 class="card-title">Campaign ID  <%= result[i].id %></h5>
+            <p class="card-text">Description  <%= result[i].description %></p>
+            <p class="card-text">Amount Raised  <%= result[i].amount_raised %></p>
             <input type="number" placeholder="Enter Amount">
             <a href="#" class="btn btn-primary">Donate</a>
           </div>
@@ -50,19 +51,59 @@
     </div>
 
     <div class="container">
-      <div class="row" id="address_div">
+      <!-- <div class="row" id="address_div">
         <div style="margin-left: 15px;margin-top: 10px;">
           <span> Address : </span>
           <select id="enter_address" value=""></select>
         </div>
-      </div>
-      <button class="btn btn-success" type="button" id="win-count" style="float:right; margin-right: 5px;">Declare Winner</button>
-        <br>
+      </div> -->
+      <!-- <button class="btn btn-success" type="button" id="win-count" style="float:right; margin-right: 5px;">Declare Winner</button>
+        <br> -->
       <div class="row" id="register_div">
         <div style="margin-left: 15px;">
-          <button class="btn btn-info" type="button" id="register">Register</button>
+          <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#myModal">Create New Campaign</button>
+          <div class="modal" id="myModal">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">New Campaign</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                  <form>
+                    <div class="mb-3">
+                      <label class="form-label required">Title</label>
+                      <input type="text" class="form-control">
+                  </div>
+                    <div class="mb-3">
+                      <label class="form-label required">Description</label>
+                      <textarea class="form-control"></textarea>
+                   </div>
+                      <div class="mb-3">
+                          <label class="form-label required">Target Amount</label>
+                          <input type="number" placeholder="Enter Amount">
+                      </div>
+                      <div class="mb-3">
+                          <label class="form-label required">Deposit</label>
+                          <input type="number" placeholder="Enter Amount">
+                      </div>
+                      
+                  </form>
+              </div>
+
+              <div class="modal-footer">
+                <button type="submit" class="btn btn-primary">Submit</button>
+                <!-- <button type="submit" class="btn btn-danger">Cancel</button> -->
+                <a href="/campaigns/created" id="cancel" name="cancel" class="btn btn-danger">Cancel</a>
+            </div>
+
+            </div>
+          </div>
         </div>
       </div>
+      </div>
+    </div>
       <br>
     </div>
     </div>
