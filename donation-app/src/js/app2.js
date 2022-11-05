@@ -37,7 +37,6 @@ App = {
 
     ethereum.enable();
 
-    // App.populateAddress();
     return App.initContract();
   },
 
@@ -50,64 +49,13 @@ App = {
     // Set the provider for our contract
     App.contracts.donations.setProvider(App.web3Provider);
     
-    // App.getChairperson();
     return App.bindEvents();
   });
   },
 
   bindEvents: function() {
     $(document).on('click', '.btn-donate', App.handleDonation);
-    // $(document).on('click', '#win-count', App.handleWinner);
-    // $(document).on('click', '#register', function(){ var ad = $('#enter_address').val(); App.handleRegister(ad); });
   },
-
-  populateAddress : function(){
-    new Web3(new Web3.providers.HttpProvider(App.url)).eth.getAccounts((err, accounts) => {
-      web3.eth.defaultAccount=web3.eth.accounts[0]
-      jQuery.each(accounts,function(i){
-        if(web3.eth.coinbase != accounts[i]){
-          var optionElement = '<option value="'+accounts[i]+'">'+accounts[i]+'</option';
-          jQuery('#enter_address').append(optionElement);  
-        }
-      });
-    });
-  },
-
-  getChairperson : function(){
-    App.contracts.donations.deployed().then(function(instance) {
-      return instance;
-    }).then(function(result) {
-      App.chairPerson = result.constructor.currentProvider.selectedAddress.toString();
-      App.currentAccount = web3.eth.coinbase;
-      if(App.chairPerson != App.currentAccount){
-        jQuery('#address_div').css('display','none');
-        jQuery('#register_div').css('display','none');
-      }else{
-        jQuery('#address_div').css('display','block');
-        jQuery('#register_div').css('display','block');
-      }
-    })
-  },
-
-  handleRegister: function(addr){
-    var voteInstance;
-    web3.eth.getAccounts(function(error, accounts) {
-    var account = accounts[0];
-    App.contracts.donations.deployed().then(function(instance) {
-      voteInstance = instance;
-      return voteInstance.register(addr, {from: account});
-    }).then(function(result, err){
-        if(result){
-            if(parseInt(result.receipt.status) == 1)
-            alert(addr + " registration done successfully")
-            else
-            alert(addr + " registration not done successfully due to revert")
-        } else {
-            alert(addr + " registration failed")
-        }   
-    })
-    })
-},
 
   handleDonation: function(event) {
     event.preventDefault();
@@ -151,53 +99,7 @@ App = {
                 alert(account + " donation failed")
             }   
         });
-
-      // App.contracts.donations.deployed().then(function(instance) {
-      //   instance.events.Donation().on ("data",function(event) {
-      //     if(!error) console.log(event);
-      //     else console.log(`Error: ${error}`);
-      //   });
-      // });
-
-    //   App.contracts.donations.deployed()
-    //   .then(contractInstance => {
-    //     const event = contractInstance.donate(campaignId, {from: account, value: amount*1e18}, (err, res) => {
-    //       if(err) {
-    //         throw Error(err)
-    //       }
-    //     })
-    //     event.watch(function(error, result){
-    //       if (error) { return console.log(error) }
-    //       if (!error) {
-    //         // DO ALL YOUR WORK HERE!
-    //         let { args: { from, to, value }, blockNumber } = result
-    //         console.log(`----BlockNumber (${blockNumber})----`)
-    //         console.log(`from = ${from}`)
-    //         console.log(`to = ${to}`)
-    //         console.log(`value = ${value}`)
-    //         console.log(`----BlockNumber (${blockNumber})----`)
-    //       }
-    //     })
-    //   })
-    //   .catch(e => {
-    //     console.error('Catastrophic Error!')
-    //     console.error(e)
-    //   })
     });
-  },
-
-  handleWinner : function() {
-    console.log("To get winner");
-    var voteInstance;
-    App.contracts.donations.deployed().then(function(instance) {
-      voteInstance = instance;
-      return voteInstance.reqWinner();
-    }).then(function(res){
-    console.log(res);
-      alert(App.names[res] + "  is the winner ! :)");
-    }).catch(function(err){
-      console.log(err.message);
-    })
   }
 };
 
