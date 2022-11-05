@@ -27,6 +27,8 @@ contract Donations {
         counter = 0;
     }  
 
+    event Donation(uint campaignId, address _from, uint _value);
+
     function createCampaign(uint amountRequired, address payable vendor, string memory description) public {
         counter = counter + 1;
         Campaign storage campaign = campaigns[counter];
@@ -58,6 +60,7 @@ contract Donations {
             campaign.vendor.transfer(campaign.fundLimit);
             closeCampaign(campaign,State.Closed);
         }
+        emit Donation(campaignId, msg.sender, msg.value);
     }
 
     // function expireCampaign(uint campaignId) public {

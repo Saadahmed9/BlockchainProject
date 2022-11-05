@@ -14,6 +14,7 @@ var app = express();
 app.set('views', __dirname + '/src');
 app.engine('html', engines.ejs);
 app.set('view engine', 'html');
+app.use(express.json());
 
 var con = mysql.createConnection({
   host: "localhost",
@@ -57,11 +58,20 @@ app.get('/campaigns/created', function (req, res) {
     res.render('campaigns_created.html', {result: result});
   });
 });
+
 app.get('/campaigns/donated', function (req, res) {
   con.query('select * from campaigns where status="OPEN"', function (err, result) {
     res.render('campaigns_donated.html', {result: result});
   });
 });
+
+
+app.post('/donations/add', function (req, res) {
+  con.query(`INSERT INTO donations (campaign_id, donated_by, amount) VALUES (${req.body['campaignId']}, '${req.body['donatedBy']}', ${req.body['amount']})`);
+  con.query(`UPDATE campaigns SET amount_raised = amount_raised +  ${req.body['amount']} where id=${req.body['campaignId']}`);
+  res.sendStatus(200);
+});
+
 
 app.listen(3000, function () {
   console.log('Example app listening on port 3000!');

@@ -37,20 +37,20 @@ App = {
 
     ethereum.enable();
 
-    App.populateAddress();
+    // App.populateAddress();
     return App.initContract();
   },
 
   initContract: function() {
       $.getJSON('Donations.json', function(data) {
     // Get the necessary contract artifact file and instantiate it with truffle-contract
-    var voteArtifact = data;
-    App.contracts.donations = TruffleContract(voteArtifact);
+    var donationsArtifact = data;
+    App.contracts.donations = TruffleContract(donationsArtifact);
 
     // Set the provider for our contract
     App.contracts.donations.setProvider(App.web3Provider);
     
-    App.getChairperson();
+    // App.getChairperson();
     return App.bindEvents();
   });
   },
@@ -112,7 +112,7 @@ App = {
   handleDonation: function(event) {
     event.preventDefault();
     var campaignId = parseInt($(event.target).data('id'));
-    console.log("Campaign Id",campaignId);
+    var amount = parseInt(event.target.previousElementSibling.value);
     var donationsInstance;
 
     web3.eth.getAccounts(function(error, accounts) {
@@ -121,18 +121,68 @@ App = {
       App.contracts.donations.deployed().then(function(instance) {
         donationsInstance = instance;
 
-        return donationsInstance.donate(campaignId, {from: account});
+        event = donationsInstance.donate(campaignId, {from: account, value: amount*1e18});
+        return event;
       }).then(function(result, err){
             if(result){
+                console.log(result.logs);
                 console.log(result.receipt.status);
-                if(parseInt(result.receipt.status) == 1)
-                alert(account + " donation done successfully")
+                if(parseInt(result.receipt.status) == 1){   
+
+                  var eventArgs = result.logs[0].args;
+
+                  fetch('http://localhost:3000/donations/add',{
+                    method: "POST",
+                    headers:{'content-type': 'application/json'},
+                    body: JSON.stringify({
+                      "campaignId": parseInt(eventArgs['campaignId']),
+                      "donatedBy": eventArgs['_from'],
+                      "amount": parseInt(eventArgs['_value'])/1e18,
+                    })
+                  })
+                  .then(resp => console.log(resp));
+
+                  alert(account + " donation done successfully");
+                }
+                
                 else
                 alert(account + " donation not done successfully due to revert")
             } else {
                 alert(account + " donation failed")
             }   
         });
+
+      // App.contracts.donations.deployed().then(function(instance) {
+      //   instance.events.Donation().on ("data",function(event) {
+      //     if(!error) console.log(event);
+      //     else console.log(`Error: ${error}`);
+      //   });
+      // });
+
+    //   App.contracts.donations.deployed()
+    //   .then(contractInstance => {
+    //     const event = contractInstance.donate(campaignId, {from: account, value: amount*1e18}, (err, res) => {
+    //       if(err) {
+    //         throw Error(err)
+    //       }
+    //     })
+    //     event.watch(function(error, result){
+    //       if (error) { return console.log(error) }
+    //       if (!error) {
+    //         // DO ALL YOUR WORK HERE!
+    //         let { args: { from, to, value }, blockNumber } = result
+    //         console.log(`----BlockNumber (${blockNumber})----`)
+    //         console.log(`from = ${from}`)
+    //         console.log(`to = ${to}`)
+    //         console.log(`value = ${value}`)
+    //         console.log(`----BlockNumber (${blockNumber})----`)
+    //       }
+    //     })
+    //   })
+    //   .catch(e => {
+    //     console.error('Catastrophic Error!')
+    //     console.error(e)
+    //   })
     });
   },
 
@@ -156,3 +206,4 @@ $(function() {
     App.init();
   });
 });
+

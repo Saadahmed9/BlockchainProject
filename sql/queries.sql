@@ -26,9 +26,15 @@ drop table donations;
 CREATE TABLE donations (
     id BIGINT NOT NULL AUTO_INCREMENT,
     campaign_id INT NOT NULL,
-    modified_on TIMESTAMP NOT NULL,
+    donated_by VARCHAR(255) NOT NULL,
+    amount INT NOT NULL,
+    created_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    modified_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
-    FOREIGN KEY (campaign_id) REFERENCES campaigns(id)
+    FOREIGN KEY (campaign_id) REFERENCES campaigns(id),
+    INDEX (campaign_id)
 );
 
-select * from campaigns;
+select * from donations;
+
+INSERT INTO donations (campaign_id, donated_by, amount) VALUES ('1', '0', 0);
