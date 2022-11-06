@@ -10,8 +10,9 @@ contract Donations {
         uint id;
         uint fundLimit;
         uint totalFundsRaised;
+        uint pot;
         address payable vendor;
-        bytes32 donationsHashed;
+        uint donationsHashed;
         State state;
     }
 
@@ -39,7 +40,6 @@ contract Donations {
         campaign.vendor = vendor;
         campaign.state = State.Open;
         campaigns[counter] = campaign;
-        
     }
 
     function donate(uint campaignId) public payable {
@@ -60,21 +60,37 @@ contract Donations {
             campaign.vendor.transfer(campaign.fundLimit);
             closeCampaign(campaign,State.Closed);
         }
+        campaign.donationsHashed = uint(keccak256(abi.encodePacked(campaign.donationsHashed,msg.value,msg.sender)));
         emit Donation(campaignId, msg.sender, msg.value);
+        
     }
 
-    // function expireCampaign(uint campaignId) public {
-    //     Campaign storage campaign = campaigns[campaignId];
+    function expireCampaign(uint campaignId, donor[] calldata donors) public validExpiry(campaignId,donors) validTransition(campaignId,State.Open){
+        Campaign storage campaign = campaigns[campaignId];
 
-    //     for (uint i=0;i<campaign.donors.length;i++){
-    //         payable(campaign.donors[i]).transfer(campaign.donations[campaign.donors[i]]);
-    //     }
+        for (uint i=0;i<donors.length;i++){
+            payable(donors[i].donorAddress).transfer(donors[i].donatedAmount);
+        }
 
-    //     closeCampaign(campaign, State.Expired);
-    // }
+        closeCampaign(campaign, State.Expired);
+    }
 
     function closeCampaign(Campaign storage campaign, State state) private {
         campaign.state = state;
+    }
+
+    modifier validExpiry(uint campaignId, donor[] calldata donors) {
+        uint hashValue;
+        for (uint i=0;i<donors.length;i++){
+            hashValue = uint(keccak256(abi.encodePacked(hashValue,donors[i].donatedAmount,donors[i].donorAddress)));
+        }
+        require(hashValue == campaigns[campaignId].donationsHashed);
+        _;
+    }
+
+    modifier validTransition(uint campaignId, State state) {
+        require(campaigns[campaignId].state == state);
+        _;
     }
 
 }

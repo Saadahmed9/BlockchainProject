@@ -72,6 +72,12 @@ app.post('/donations/add', function (req, res) {
   res.sendStatus(200);
 });
 
+app.get('/donations', function (req, res) {
+  con.query(`SELECT * from donations where campaign_id=${req.query['campaignId']} order by created_on`, function (err, result) {
+    res.json(result);
+  });
+});
+
 
 app.listen(3000, function () {
   console.log('Example app listening on port 3000!');

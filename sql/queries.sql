@@ -16,7 +16,7 @@ CREATE TABLE campaigns (
     modified_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id)
 );
-
+SELECT * from donations where campaign_id=1 order by created_on;
 INSERT INTO `donations`.`campaigns` (`id`, `created_by`, `status`, `vendor`, `description`, `target`, `deposit`, `amount_raised`) VALUES ('7', '1', 'CLOSED', '1', 'Description 8', '1000', '100', '0');
 
 select * from campaigns where created_by=1;
@@ -36,5 +36,5 @@ CREATE TABLE donations (
 );
 
 select * from donations;
-
+DELETE from donations WHERE campaign_id=1;
 INSERT INTO donations (campaign_id, donated_by, amount) VALUES ('1', '0', 0);

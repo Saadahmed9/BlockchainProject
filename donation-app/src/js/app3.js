@@ -18,7 +18,6 @@ App = {
         campaignCard.find('.card-title').text(data[i].title);
         campaignCard.find('.card-description').text(data[i].description);
         campaignCard.find('.btn-donate').attr('data-id', data[i].id);
-        campaignCard.find('.btn-expire').attr('data-id', data[i].id);
         campaignRows.append(campaignCard.html());
         App.names.push(data[i].name);
       }
@@ -56,7 +55,6 @@ App = {
 
   bindEvents: function() {
     $(document).on('click', '.btn-donate', App.handleDonation);
-    $(document).on('click', '.btn-expire', App.handleExpiry);
   },
 
   handleDonation: function(event) {
@@ -101,57 +99,6 @@ App = {
                 alert(account + " donation failed")
             }   
         });
-    });
-  },
-
-  handleExpiry: function(event) {
-    event.preventDefault();
-    var campaignId = parseInt($(event.target).data('id'));
-    var donationsInstance;
-
-    web3.eth.getAccounts(function(error, accounts) {
-      var account = accounts[0];
-
-      App.contracts.donations.deployed().then(function(instance) {
-        donationsInstance = instance;
-        const donations = [];
-        fetch(`http://localhost:3000/donations?campaignId=${campaignId}`)
-        .then(resp => resp.json())
-        .then(data => {
-          for (var i=0;i<data.length;i++){
-            donations.push([data[i]["donated_by"],data[i]["amount"]]);
-          }
-          donationsInstance.expireCampaign(campaignId, donations,{from: account}).then(function(result, err){
-            if(result){
-                console.log(result.logs);
-                console.log(result.receipt.status);
-                if(parseInt(result.receipt.status) == 1){   
-
-                  var eventArgs = result.logs[0].args;
-
-                  // fetch('http://localhost:3000/donations/add',{
-                  //   method: "POST",
-                  //   headers:{'content-type': 'application/json'},
-                  //   body: JSON.stringify({
-                  //     "campaignId": parseInt(eventArgs['campaignId']),
-                  //     "donatedBy": eventArgs['_from'],
-                  //     "amount": parseInt(eventArgs['_value'])/1e18,
-                  //   })
-                  // })
-                  // .then(resp => console.log(resp));
-
-                  alert(account + " Refunds done successfully");
-                }
-                
-                else
-                alert(account + " Refunds not done successfully due to revert")
-            } else {
-                alert(account + " Refunds failed")
-            }   
-        });
-        });
-
-      })
     });
   }
 };
