@@ -6,91 +6,96 @@ contract Donations {
     enum State {Open, Closed, Expired}
 
     struct Campaign {
-        string description;
         uint id;
-        uint fundLimit;
-        uint totalFundsRaised;
-        uint pot;
+        uint target;
+        uint fundsRaised;
+        uint deposit;
+        address createdBy;
         address payable vendor;
-        uint donationsHashed;
+        uint donationsHash;
         State state;
     }
 
-    struct donor{
+    struct Donor{
         address donorAddress;
         uint donatedAmount;
     }
 
     mapping(uint => Campaign) public campaigns;
     uint public counter;
+    uint public percentToDeposit;
     
-    constructor () {
+    constructor (uint percentToDepositValue) {
         counter = 0;
+        percentToDeposit = percentToDepositValue;
     }  
 
     event Donation(uint campaignId, address _from, uint _value);
-
-    function createCampaign(uint amountRequired, address payable vendor, string memory description) public {
-        counter = counter + 1;
-        Campaign storage campaign = campaigns[counter];
-        campaign.description = description;
-        campaign.id = counter;
-        campaign.fundLimit = amountRequired;            
-        campaign.totalFundsRaised = 0;
-        campaign.vendor = vendor;
-        campaign.state = State.Open;
-        campaigns[counter] = campaign;
-    }
-
-    function donate(uint campaignId) public payable {
-        // require(campaigns[campaignId] != 0);
-        Campaign storage campaign = campaigns[campaignId];
-        require(campaign.totalFundsRaised + msg.value <= campaign.fundLimit);
-        require(campaign.state == State.Open);
-        
-        // if (campaign.donations[msg.sender] != 0){
-        //     campaign.donations[msg.sender] += msg.value;
-        // }else {
-        //     campaign.donations[msg.sender] = msg.value;
-        //     campaign.donors.push(msg.sender);
-        // }
-        campaign.totalFundsRaised += msg.value;
-
-        if (campaign.totalFundsRaised >= campaign.fundLimit){
-            campaign.vendor.transfer(campaign.fundLimit);
-            closeCampaign(campaign,State.Closed);
-        }
-        campaign.donationsHashed = uint(keccak256(abi.encodePacked(campaign.donationsHashed,msg.value,msg.sender)));
-        emit Donation(campaignId, msg.sender, msg.value);
-        
-    }
-
-    function expireCampaign(uint campaignId, donor[] calldata donors) public validExpiry(campaignId,donors) validTransition(campaignId,State.Open){
-        Campaign storage campaign = campaigns[campaignId];
-
-        for (uint i=0;i<donors.length;i++){
-            payable(donors[i].donorAddress).transfer(donors[i].donatedAmount);
-        }
-
-        closeCampaign(campaign, State.Expired);
-    }
-
-    function closeCampaign(Campaign storage campaign, State state) private {
-        campaign.state = state;
-    }
-
-    modifier validExpiry(uint campaignId, donor[] calldata donors) {
-        uint hashValue;
-        for (uint i=0;i<donors.length;i++){
-            hashValue = uint(keccak256(abi.encodePacked(hashValue,donors[i].donatedAmount,donors[i].donorAddress)));
-        }
-        require(hashValue == campaigns[campaignId].donationsHashed);
-        _;
-    }
+    event StateTransition(uint campaignId, State state);
 
     modifier validTransition(uint campaignId, State state) {
         require(campaigns[campaignId].state == state);
         _;
     }
 
+    modifier validCreateCampaign(uint amountRequired) {
+        require(amountRequired*percentToDeposit == msg.value*100);
+        _;
+    }
+
+    modifier validDonation(uint campaignId) {
+        require(campaigns[campaignId].fundsRaised + msg.value <= campaigns[campaignId].target);
+        _;
+    }
+
+    modifier validExpireCampaign(uint campaignId, Donor[] calldata donors) {
+        require(campaigns[campaignId].createdBy == msg.sender);
+        uint hashValue;
+        for (uint i=0;i<donors.length;i++){
+            hashValue = uint(keccak256(abi.encodePacked(hashValue,donors[i].donatedAmount,donors[i].donorAddress)));
+        }
+        require(hashValue == campaigns[campaignId].donationsHash);
+        _;
+    }
+
+    function createCampaign(uint amountRequired, address payable vendor) public payable validCreateCampaign(amountRequired) {
+        counter = counter + 1;
+        Campaign storage campaign = campaigns[counter];
+        campaign.id = counter;
+        campaign.target = amountRequired;            
+        campaign.fundsRaised = 0;
+        campaign.createdBy = msg.sender;
+        campaign.vendor = vendor;
+        campaign.state = State.Open;
+        campaign.deposit = msg.value;
+        campaigns[counter] = campaign;
+    }
+
+    function donate(uint campaignId) public payable validTransition(campaignId, State.Open) validDonation(campaignId) {
+        Campaign storage campaign = campaigns[campaignId];
+        campaign.fundsRaised += msg.value;
+
+        campaign.donationsHash = uint(keccak256(abi.encodePacked(campaign.donationsHash,msg.value,msg.sender)));
+        emit Donation(campaignId, msg.sender, msg.value);
+
+        if (campaign.fundsRaised == campaign.target){
+            campaign.vendor.transfer(campaign.target);
+            payable(campaign.createdBy).transfer(campaign.deposit);
+            closeCampaign(campaign,State.Closed);
+        }
+    }
+
+    function expireCampaign(uint campaignId, Donor[] calldata donors) public validTransition(campaignId,State.Open) validExpireCampaign(campaignId,donors) {
+        Campaign storage campaign = campaigns[campaignId];
+        for (uint i=0;i<donors.length;i++){
+            payable(donors[i].donorAddress).transfer(donors[i].donatedAmount);
+        }
+        payable(campaign.createdBy).transfer(campaign.deposit);
+        closeCampaign(campaign, State.Expired);
+    }
+
+    function closeCampaign(Campaign storage campaign, State state) private {
+        campaign.state = state;
+        emit StateTransition(campaign.id, state);
+    }
 }

@@ -1,5 +1,5 @@
 var Donations = artifacts.require("Donations");
 
 module.exports = function(deployer) {
-  deployer.deploy(Donations);
+  deployer.deploy(Donations,10);
 };
