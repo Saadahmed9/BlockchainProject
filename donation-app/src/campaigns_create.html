@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <title>Decentralized Donations</title>
+
+    <!-- Bootstrap -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+
+  </head>
+  <body>
+    
+    <div class="container">
+      <nav class="nav nav-pills nav-fill">
+        <a class="nav-link active" aria-current="page" href="/campaigns">All Campaigns</a>
+        <a class="nav-link" href="/campaigns/created">My Campaigns</a>
+        <a class="nav-link" href="/campaigns/donated">Donations</a>
+      </nav>
+
+      <% for (var i=0;i<result.length;i++){ %>
+        <div id="campaignCard" class="card" class="row">
+          <div class="card-body">
+            <h5 class="card-title">Campaign ID  <%= result[i].id %></h5>
+            <p class="card-text">Description  <%= result[i].description %></p>
+            <p class="card-text">Amount Raised  <%= result[i].amount_raised %></p>
+            <input type="number" placeholder="Enter Amount">
+            <a href="#" class="btn btn-primary">Donate</a>
+          </div>
+        </div>
+      <% } %>
+
+    <div id="proposalTemplate" style="display: none;">
+      <div class="col-sm-8 col-md-2 col-lg-3">
+        <div class="panel panel-default panel-proposal">
+          <div class="panel-heading">
+            <h3 class="panel-title" style="text-align:center"></h3>
+          </div>
+          <div class="panel-body">
+            <img alt="140x140" data-src="holder.js/170x170" class="img-rounded img-center" style="width: 230px; height: 280px;" src="images/Milli.png" data-holder-rendered="true">
+            <br/><br/>
+            <div class="col-md-12 text-center"> 
+              <button class="btn btn-default btn-vote" type="button" data-id="0">Vote</button>
+            </div>  
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <!-- <div class="row" id="address_div">
+        <div style="margin-left: 15px;margin-top: 10px;">
+          <span> Address : </span>
+          <select id="enter_address" value=""></select>
+        </div>
+      </div> -->
+      <!-- <button class="btn btn-success" type="button" id="win-count" style="float:right; margin-right: 5px;">Declare Winner</button>
+        <br> -->
+      <div class="row" id="register_div">
+        <div style="margin-left: 15px;">
+          <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#myModal">Create New Campaign</button>
+          <div class="modal" id="myModal">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">New Campaign</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                  <form>
+                    <div class="mb-3">
+                      <label class="form-label required" id="ti1">Title</label>
+                      <input type="text" class="form-control" required="required">
+                  </div>
+                    <div class="mb-3">
+                      <label class="form-label required" id="de1">Description</label>
+                      <textarea class="form-control" id="description" required="required"></textarea>
+                   </div>
+                      <div class="mb-3">
+                          <label class="form-label required" id="t1">Target Amount</label>
+                          <input type="number" placeholder="Enter Amount" id="target" required="required">
+                      </div>
+                      <div class="mb-3">
+                          <label class="form-label required" id="d1">Deposit</label>
+                          <input type="number" placeholder="Enter Amount" id="deposit" required="required">
+                      </div>
+                      
+                    
+              </div>
+
+              <div class="modal-footer">
+                <!-- <button type="submit" class="btn btn-primary btn-submit">Submit</button>   -->
+                <!-- <button type="submit" class="btn btn-danger">Cancel</button> -->
+                <button type="submit" class="btn btn-primary" id="btn-submit">Submit</button> 
+                <a href="/campaigns/created" id="cancel" name="cancel" class="btn btn-danger">Cancel</a>
+            </div>
+          </form>
+
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+    </div>
+      <br>
+    </div>
+    </div>
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="js/dist/bootstrap.min.js"></script>
+    <script src="js/dist/web3.min.js"></script>
+    <script src="js/dist/truffle-contract.js"></script>
+    <script src="js/app2.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+  </body>
+</html>
