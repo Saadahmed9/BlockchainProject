@@ -17,7 +17,7 @@ CREATE TABLE campaigns (
     PRIMARY KEY (id)
 );
 SELECT * from donations where campaign_id=1 order by created_on;
-INSERT INTO `donations`.`campaigns` (`id`, `created_by`, `status`, `vendor`, `description`, `target`, `deposit`, `amount_raised`) VALUES ('7', '1', 'CLOSED', '1', 'Description 8', '1000', '100', '0');
+INSERT INTO `donations`.`campaigns` (`id`, `created_by`, `status`, `vendor`, `description`, `target`, `deposit`, `amount_raised`) VALUES ('16', '0x846580353AcDEAE821e3b3449d2eFa71E4Ca70F6', 'OPEN', '1', 'Description 16', '100', '10', '5');
 
 select * from campaigns where created_by=1;
 
@@ -35,6 +35,11 @@ CREATE TABLE donations (
     INDEX (campaign_id)
 );
 
-select * from donations;
+SELECT *
+FROM campaigns
+WHERE id in p.campaign_id ();
+
+select c.*,d.donated_by,sum(d.amount) as amount_donated from donations d LEFT JOIN campaigns c on d.campaign_id=c.id where d.donated_by="0x846580353AcDEAE821e3b3449d2eFa71E4Ca70F6"  group by d.campaign_id,d.donated_by
+
 DELETE from donations WHERE campaign_id=1;
 INSERT INTO donations (campaign_id, donated_by, amount) VALUES ('1', '0', 0);

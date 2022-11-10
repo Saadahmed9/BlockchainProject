@@ -8,114 +8,95 @@
     <title>Decentralized Donations</title>
 
     <!-- Bootstrap -->
-    <link href="css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
 
   </head>
   <body>
     
-    <div class="container">
-      <nav class="nav nav-pills nav-fill">
-        <a class="nav-link active" aria-current="page" href="/campaigns">All Campaigns</a>
-        <a class="nav-link" href="/campaigns/created">My Campaigns</a>
-        <a class="nav-link" href="/campaigns/donated">Donations</a>
-      </nav>
-
-      <% for (var i=0;i<result.length;i++){ %>
-        <div id="campaignCard" class="card" class="row">
-          <div class="card-body">
-            <h5 class="card-title">Campaign ID  <%= result[i].id %></h5>
-            <p class="card-text">Description  <%= result[i].description %></p>
-            <p class="card-text">Amount Raised  <%= result[i].amount_raised %></p>
-            <input type="number" placeholder="Enter Amount">
-            <a href="#" class="btn btn-primary">Donate</a>
-          </div>
-        </div>
-      <% } %>
-
-    <div id="proposalTemplate" style="display: none;">
-      <div class="col-sm-8 col-md-2 col-lg-3">
-        <div class="panel panel-default panel-proposal">
-          <div class="panel-heading">
-            <h3 class="panel-title" style="text-align:center"></h3>
-          </div>
-          <div class="panel-body">
-            <img alt="140x140" data-src="holder.js/170x170" class="img-rounded img-center" style="width: 230px; height: 280px;" src="images/Milli.png" data-holder-rendered="true">
-            <br/><br/>
-            <div class="col-md-12 text-center"> 
-              <button class="btn btn-default btn-vote" type="button" data-id="0">Vote</button>
-            </div>  
-          </div>
-        </div>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark navbar-fixed-top">
+      <div class="collapse navbar-collapse mr-auto">
+        <ul class="navbar-nav mr-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="/campaigns">All Campaigns</span></a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link active" href="/mycampaigns">My Campaigns</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/campaigns/donated">Donations</a>
+          </li>
+        </ul>
       </div>
-    </div>
+      <a class="navbar-brand mr-auto" href="#">Decentralized Donations</a>
+    </nav>
 
-    <div class="container">
-      <!-- <div class="row" id="address_div">
-        <div style="margin-left: 15px;margin-top: 10px;">
-          <span> Address : </span>
-          <select id="enter_address" value=""></select>
-        </div>
-      </div> -->
-      <!-- <button class="btn btn-success" type="button" id="win-count" style="float:right; margin-right: 5px;">Declare Winner</button>
-        <br> -->
-      <div class="row" id="register_div">
-        <div style="margin-left: 15px;">
-          <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#myModal">Create New Campaign</button>
-          <div class="modal" id="myModal">
-            <div class="modal-dialog">
-              <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">New Campaign</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-
-                <div class="modal-body">
-                  <form>
-                    <div class="mb-3">
-                      <label class="form-label required">Title</label>
-                      <input type="text" class="form-control">
-                  </div>
-                    <div class="mb-3">
-                      <label class="form-label required">Description</label>
-                      <textarea class="form-control"></textarea>
-                   </div>
-                      <div class="mb-3">
-                          <label class="form-label required">Target Amount</label>
-                          <input type="number" placeholder="Enter Amount">
-                      </div>
-                      <div class="mb-3">
-                          <label class="form-label required">Deposit</label>
-                          <input type="number" placeholder="Enter Amount">
-                      </div>
-                      
-                  </form>
+    <div class="row my-5" id="register_div">
+      <div style="margin-left: 50px;">
+        <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#myModal">Create New Campaign</button>
+        <div class="modal" id="myModal">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                  <h5 class="modal-title">New Campaign</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
               </div>
 
-              <div class="modal-footer">
-                <button type="submit" class="btn btn-primary">Submit</button>
-                <!-- <button type="submit" class="btn btn-danger">Cancel</button> -->
-                <a href="/campaigns/created" id="cancel" name="cancel" class="btn btn-danger">Cancel</a>
+              <div class="modal-body">
+                <form action="">
+                  <div class="mb-3">
+                    <label class="form-label required" id="ti1">Title</label>
+                    <input type="text" class="form-control" required="required">
+                </div>
+                  <div class="mb-3">
+                    <label class="form-label required" id="de1">Description</label>
+                    <textarea class="form-control" id="description" required="required"></textarea>
+                  </div>
+                    <div class="mb-3">
+                        <label class="form-label required" id="t1">Target ETH </label>
+                        <input type="number" placeholder="Enter ETH" id="target" required="required">
+                    </div>
+                    <div class="mb-3">
+                        <p>10% of Target will be collected as deposit</p>
+                    </div>
+                    
+                  
             </div>
 
+            <div class="modal-footer">
+              <input type="submit" class="btn btn-primary" value="Submit">
+              <a href="/campaigns/created" id="cancel" name="cancel" class="btn btn-danger">Cancel</a>
             </div>
           </div>
         </div>
       </div>
+    </div>
+
+    <div id="campaignRows">
+    </div>
+
+    <div id="campaignCard" style="display: none;">
+      <div class="card mt-4 mx-5 shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">Title</h5>
+          <p class="card-description">Description</p>
+          <h6 class="card-status">Status</h6>
+          <h6 class="card-target" style="text-align: right;">Target</h6>
+          <div class="progress">
+            <div class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">25</div>
+          </div>
+          <a href="#" class="btn btn-danger btn-expire mt-2" data-id="">Expire</a>
+        </div>
       </div>
-    </div>
-      <br>
-    </div>
     </div>
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 
     <!-- Include all compiled plugins (below), or include individual files as needed -->
-    <script src="js/dist/bootstrap.min.js"></script>
-    <script src="js/dist/web3.min.js"></script>
-    <script src="js/dist/truffle-contract.js"></script>
-    <script src="js/app2.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.3.3/dist/web3.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@truffle/contract@4.3.5/dist/truffle-contract.js"></script>
+    <script src="../js/app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+  
   </body>
 </html>
