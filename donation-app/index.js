@@ -51,10 +51,17 @@ app.get('/campaigns', function (req, res) {
   res.render('campaigns.html');
 });
 
-app.get('/campaigns/created', function (req, res) {
+app.get('/mycampaigns', function (req, res) {
   con.query('select * from campaigns where status="OPEN"', function (err, result) {
     res.render('campaigns_created.html', {result: result});
   });
+});
+
+app.post('/campaigns/add', function (req, res) {
+  // console.log(req);
+  con.query(`INSERT INTO campaigns (id, created_by, status, vendor, description, target, deposit, amount_raised) VALUES ('8','1','OPEN','1','${req.body['description']}', '${req.body['amountRequired']}','${req.body['deposit']}','0')`);
+  
+  res.sendStatus(200);
 });
 
 app.get('/campaigns/donated', function (req, res) {
@@ -90,5 +97,3 @@ app.get('/query/campaigns/donated', function (req, res) {
 app.listen(3000, function () {
   console.log('Example app listening on port 3000!');
 });
-
-

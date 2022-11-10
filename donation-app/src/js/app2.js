@@ -57,6 +57,7 @@ App = {
   bindEvents: function() {
     $(document).on('click', '.btn-donate', App.handleDonation);
     $(document).on('click', '.btn-expire', App.handleExpiry);
+    $("form").submit(App.handleCreateCampaign);
   },
 
   handleDonation: function(event) {
@@ -117,6 +118,33 @@ App = {
     });
   },
 
+  handleCreateCampaign: function(event) {
+    event.preventDefault();
+    // var campaignId = parseInt($(event.target).data('id'));
+    // var amount = parseInt(event.target.previousElementSibling.value);
+    // var donationsInstance;
+    var ta1=parseInt($('#target').val());
+    var de=parseInt($('#deposit').val());
+    var desc=$('#description').val();
+    
+    //de1=de.toString();
+    //console.log(ta1);
+    fetch('http://localhost:3000/campaigns/add',{
+                    method: "POST",
+                    headers:{'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                      "description": desc,
+                      "amountRequired": ta1,
+                      "deposit": de,
+                    })
+                  })
+    
+    alert("Campaign has been created.");
+    location.href = "http://localhost:3000/mycampaigns";
+    
+    
+  },
+
   handleExpiry: function(event) {
     event.preventDefault();
     var campaignId = parseInt($(event.target).data('id'));
@@ -174,4 +202,3 @@ $(function() {
     App.init();
   });
 });
-
