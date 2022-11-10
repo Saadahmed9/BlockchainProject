@@ -11,7 +11,7 @@ var mysql = require('mysql');
 // console.log(web3.eth.accounts[0]);
 var app = express();
 
-app.set('views', __dirname + '/src/views');
+app.set('views', __dirname + '/src');
 app.engine('html', engines.ejs);
 app.set('view engine', 'html');
 app.use(express.json());
@@ -48,9 +48,7 @@ app.get('/campaigns/open', function (req, res) {
 });
 
 app.get('/campaigns', function (req, res) {
-  con.query('select * from campaigns where status="OPEN"', function (err, result) {
-    res.render('campaigns.html', {result: result});
-  });
+  res.render('campaigns.html');
 });
 
 app.get('/campaigns/created', function (req, res) {
@@ -60,9 +58,7 @@ app.get('/campaigns/created', function (req, res) {
 });
 
 app.get('/campaigns/donated', function (req, res) {
-  con.query('select * from campaigns where status="OPEN"', function (err, result) {
-    res.render('campaigns_donated.html', {result: result});
-  });
+    res.render('campaigns_donated.html');
 });
 
 
@@ -74,6 +70,18 @@ app.post('/donations/add', function (req, res) {
 
 app.get('/donations', function (req, res) {
   con.query(`SELECT * from donations where campaign_id=${req.query['campaignId']} order by created_on`, function (err, result) {
+    res.json(result);
+  });
+});
+
+app.post('/campaigns/update', function (req, res) {
+  states = ["OPEN","CLOSED","EXPIRED"];
+  con.query(`UPDATE campaigns SET status='${states[req.body['state']]}' where id=${req.body['campaignId']}`);
+  res.sendStatus(200);
+});
+
+app.get('/query/campaigns/donated', function (req, res) {
+  con.query(`select c.*,d.donated_by,sum(d.amount) as amount_donated from donations d LEFT JOIN campaigns c on d.campaign_id=c.id where d.donated_by='${req.query['donatedBy']}' group by d.campaign_id,d.donated_by`, function (err, result) {
     res.json(result);
   });
 });

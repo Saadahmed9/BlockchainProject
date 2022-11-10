@@ -77,20 +77,33 @@ App = {
             if(result){
                 console.log(result.logs);
                 console.log(result.receipt.status);
-                if(parseInt(result.receipt.status) == 1){   
+                if(result.receipt.status == true){   
 
-                  var eventArgs = result.logs[0].args;
+                  var donationEvent = result.logs[0].args;
 
                   fetch('http://localhost:3000/donations/add',{
                     method: "POST",
                     headers:{'content-type': 'application/json'},
                     body: JSON.stringify({
-                      "campaignId": parseInt(eventArgs['campaignId']),
-                      "donatedBy": eventArgs['_from'],
-                      "amount": parseInt(eventArgs['_value'])/1e18,
+                      "campaignId": parseInt(donationEvent['campaignId']),
+                      "donatedBy": donationEvent['_from'],
+                      "amount": parseInt(donationEvent['_value'])/1e18,
                     })
                   })
                   .then(resp => console.log(resp));
+                  if (result.logs[1] != null){
+                    var stateTransition = result.logs[1].args;
+
+                    fetch('http://localhost:3000/campaigns/update',{
+                      method: "POST",
+                      headers:{'content-type': 'application/json'},
+                      body: JSON.stringify({
+                        "campaignId": parseInt(stateTransition['campaignId']),
+                        "state": parseInt(stateTransition['state'])
+                      })
+                    })
+                    .then(resp => console.log(resp));
+                  }
 
                   alert(account + " donation done successfully");
                 }
@@ -125,7 +138,7 @@ App = {
             if(result){
                 console.log(result.logs);
                 console.log(result.receipt.status);
-                if(parseInt(result.receipt.status) == 1){   
+                if(result.receipt.status == true){   
 
                   var eventArgs = result.logs[0].args;
 

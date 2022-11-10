@@ -6,23 +6,27 @@ App = {
   chairPerson:null,
   currentAccount:null,
   init: function() {
+    App.initWeb3();
 
-    fetch('http://localhost:3000/campaigns/open')
-    .then(resp => resp.json())
-    .then(data => {
-      console.log(data);  
-      var campaignRows = $('#campaignRows');
-      var campaignCard = $('#campaignCard');
+    web3.eth.getAccounts(function(error, accounts) {
+      var donatedBy = accounts[0];
 
-      for (i = 0; i < data.length; i ++) {
-        campaignCard.find('.card-title').text(data[i].title);
-        campaignCard.find('.card-description').text(data[i].description);
-        campaignCard.find('.btn-donate').attr('data-id', data[i].id);
-        campaignRows.append(campaignCard.html());
-        App.names.push(data[i].name);
-      }
+      fetch(`http://localhost:3000/query/campaigns/donated?donatedBy=${donatedBy}`)
+      .then(resp => resp.json())
+      .then(data => {
+        console.log(data);  
+        var campaignRows = $('#campaignRows');
+        var campaignCard = $('#campaignCard');
+
+        for (i = 0; i < data.length; i ++) {
+          campaignCard.find('.card-title').text(data[i].title);
+          campaignCard.find('.card-description').text(data[i].description);
+          campaignCard.find('.btn-donate').attr('data-id', data[i].id);
+          campaignRows.append(campaignCard.html());
+          App.names.push(data[i].name);
+        }
+      });
     });
-    return App.initWeb3();
   },
 
   initWeb3: function() {
