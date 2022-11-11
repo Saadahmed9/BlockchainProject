@@ -34,7 +34,6 @@ App = {
 
         web3.eth.getAccounts(function(error, accounts) {
           var createdBy = accounts[0];
-    
           fetch(`${App.backendUrl}/query/campaigns/created?createdBy=${createdBy}`)
           .then(resp => resp.json())
           .then(data => {
@@ -186,27 +185,56 @@ App = {
 
   handleCreateCampaign: function(event) {
     event.preventDefault();
-    // var campaignId = parseInt($(event.target).data('id'));
-    // var amount = parseInt(event.target.previousElementSibling.value);
-    // var donationsInstance;
+    var campaignId = parseInt($(event.target).data('id'));
+    //var amount = parseInt(event.target.previousElementSibling.value);
+    var donationsInstance;
     var ta1=parseInt($('#target').val());
     var de=parseInt($('#deposit').val());
     var desc=$('#description').val();
     
-    //de1=de.toString();
-    //console.log(ta1);
-    fetch(`${App.backendUrl}/query/campaigns/add`,{
-      method: "POST",
-      headers:{'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        "description": desc,
-        "amountRequired": ta1,
-        "deposit": de,
-      })
-    })
+    web3.eth.getAccounts(function(error, accounts) {
+      var account = accounts[0];
+      console.log(account);
+      App.contracts.donations.deployed().then(function(instance) {
+        donationsInstance = instance;
+
+        event = donationsInstance.createCampaign(ta1,account, {from: account});
+        return event;
+      }).then(function(result, err){
+          if(result){
+                console.log(result.logs);
+                console.log(result.receipt.status);
+                if(result.receipt.status == true){   
+                  console.log("hello");
+                  var campaignEvent = result.logs[0].args;
+                  fetch(`${App.backendUrl}/query/campaigns/add`,{
+                    method: "POST",
+                    headers:{'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                      "campaignId": parseInt(campaignEvent['campaignId']),
+                      "created_by":campaignEvent['createdBy'],
+                      "vendor":campaignEvent['address'],
+                      "description": desc,
+                      "amountRequired": ta1,
+                      "deposit": de,
+                    })
+                  })
+                  .then(resp => console.log(resp));
+                  
+
+                  alert(account + " Campaign created successfully");
+                }
+                
+                else
+                alert(account + " Campaign creation failed due to revert")
+            } else {
+               alert(account + " Campaign creation failed")
+            }   
+        });
+    });
     
-    alert("Campaign has been created.");
-    location.href = `${App.backendUrl}/mycampaigns`;
+    // alert("Campaign has been created.");
+    // location.href = `${App.backendUrl}/mycampaigns`;
     
   },
 
