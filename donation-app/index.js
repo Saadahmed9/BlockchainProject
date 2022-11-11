@@ -32,7 +32,7 @@ app.get('/campaigns', function (req, res) {
   res.render('campaigns.html');
 });
 
-app.get('/mycampaigns', function (req, res) {
+app.get('/campaigns/created', function (req, res) {
   res.render('campaigns_created.html');
 });
 
@@ -50,13 +50,12 @@ app.get('/query/campaigns/open', function (req, res) {
 });
 
 app.post('/query/campaigns/add', function (req, res) {
-  con.query(`INSERT INTO campaigns (id, created_by, status, vendor, description, target, deposit, amount_raised) VALUES ('${req.body['campaignID']}','${req.body['created_by']}','OPEN','${req.body['vendor']}','${req.body['description']}', '${req.body['amountRequired']}','${req.body['deposit']}','0')`);
+  con.query(`INSERT INTO campaigns (id, title, created_by, status, vendor, description, target, deposit, funds_raised) VALUES ('${req.body['campaignId']}','${req.body['title']}','${req.body['createdBy']}','OPEN','${req.body['vendor']}','${req.body['description']}', '${req.body['target']}','${req.body['deposit']}','0')`);
   res.sendStatus(200);
 });
 
-app.post('query/campaigns/update', function (req, res) {
-  states = ["OPEN","CLOSED","EXPIRED"];
-  con.query(`UPDATE campaigns SET status='${states[req.body['state']]}' where id=${req.body['campaignId']}`);
+app.post('/query/campaigns/update', function (req, res) {
+  con.query(`UPDATE campaigns SET status='${req.body['status']}' where id=${req.body['campaignId']}`);
   res.sendStatus(200);
 });
 
@@ -72,13 +71,13 @@ app.get('/query/campaigns/created', function (req, res) {
   });
 });
 
-app.post('query/donations/add', function (req, res) {
+app.post('/query/donations/add', function (req, res) {
   con.query(`INSERT INTO donations (campaign_id, donated_by, amount) VALUES (${req.body['campaignId']}, '${req.body['donatedBy']}', ${req.body['amount']})`);
-  con.query(`UPDATE campaigns SET amount_raised = amount_raised +  ${req.body['amount']} where id=${req.body['campaignId']}`);
+  con.query(`UPDATE campaigns SET funds_raised = funds_raised +  ${req.body['amount']} where id=${req.body['campaignId']}`);
   res.sendStatus(200);
 });
 
-app.get('query/donations', function (req, res) {
+app.get('/query/donations', function (req, res) {
   con.query(`SELECT * from donations where campaign_id=${req.query['campaignId']} order by created_on`, function (err, result) {
     res.json(result);
   });

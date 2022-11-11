@@ -3,7 +3,7 @@ pragma solidity 0.8.17;
 
 contract Donations {
     
-    enum State {Open, Closed, Expired}
+    enum Status {OPEN, CLOSED, EXPIRED}
 
     struct Campaign {
         uint id;
@@ -13,7 +13,7 @@ contract Donations {
         address createdBy;
         address payable vendor;
         uint donationsHash;
-        State state;
+        Status status;
     }
 
     struct Donor{
@@ -31,10 +31,11 @@ contract Donations {
     }  
 
     event Donation(uint campaignId, address _from, uint _value);
-    event StateTransition(uint campaignId, State state);
+    event Transition(uint campaignId, Status status);
+    event CreateCampaign(uint campaignId, uint target, uint deposit, address createdBy, address vendor);
 
-    modifier validTransition(uint campaignId, State state) {
-        require(campaigns[campaignId].state == state);
+    modifier validTransition(uint campaignId, Status status) {
+        require(campaigns[campaignId].status == status);
         _;
     }
 
@@ -66,12 +67,13 @@ contract Donations {
         campaign.fundsRaised = 0;
         campaign.createdBy = msg.sender;
         campaign.vendor = vendor;
-        campaign.state = State.Open;
+        campaign.status = Status.OPEN;
         campaign.deposit = msg.value;
         campaigns[counter] = campaign;
+        emit CreateCampaign(campaign.id,campaign.target,campaign.deposit,campaign.createdBy,campaign.vendor);
     }
 
-    function donate(uint campaignId) public payable validTransition(campaignId, State.Open) validDonation(campaignId) {
+    function donate(uint campaignId) public payable validTransition(campaignId, Status.OPEN) validDonation(campaignId) {
         Campaign storage campaign = campaigns[campaignId];
         campaign.fundsRaised += msg.value;
 
@@ -81,21 +83,21 @@ contract Donations {
         if (campaign.fundsRaised == campaign.target){
             campaign.vendor.transfer(campaign.target);
             payable(campaign.createdBy).transfer(campaign.deposit);
-            closeCampaign(campaign,State.Closed);
+            closeCampaign(campaign,Status.CLOSED);
         }
     }
 
-    function expireCampaign(uint campaignId, Donor[] calldata donors) public validTransition(campaignId,State.Open) validExpireCampaign(campaignId,donors) {
+    function expireCampaign(uint campaignId, Donor[] calldata donors) public validTransition(campaignId,Status.OPEN) validExpireCampaign(campaignId,donors) {
         Campaign storage campaign = campaigns[campaignId];
         for (uint i=0;i<donors.length;i++){
             payable(donors[i].donorAddress).transfer(donors[i].donatedAmount);
         }
         payable(campaign.createdBy).transfer(campaign.deposit);
-        closeCampaign(campaign, State.Expired);
+        closeCampaign(campaign, Status.EXPIRED);
     }
 
-    function closeCampaign(Campaign storage campaign, State state) private {
-        campaign.state = state;
-        emit StateTransition(campaign.id, state);
+    function closeCampaign(Campaign storage campaign, Status status) private {
+        campaign.status = status;
+        emit Transition(campaign.id, status);
     }
 }

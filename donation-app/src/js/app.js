@@ -21,35 +21,38 @@ App = {
             campaignCard.find('.card-title').text(data[i].title);
             campaignCard.find('.card-description').text(data[i].description);
             campaignCard.find('.card-target').text(`Target : ${data[i]['target']} ETH`);
-            campaignCard.find('.progress-bar').attr('aria-valuenow',data[i]['amount_raised']);
+            campaignCard.find('.progress-bar').attr('aria-valuenow',data[i]['funds_raised']);
             campaignCard.find('.progress-bar').attr('aria-valuemax',data[i]['target']);
-            campaignCard.find('.progress-bar').attr('style',`width: ${1+data[i]['amount_raised']*100/data[i]['target']}%;`);
-            campaignCard.find('.progress-bar').text(data[i]['amount_raised']);
+            var width = data[i]['funds_raised']*100/data[i]['target']
+            if (width != 0) width+=5
+            campaignCard.find('.progress-bar').attr('style',`width: ${width}%;`);
+            campaignCard.find('.progress-bar').text(data[i]['funds_raised']);
             campaignCard.find('.btn-donate').attr('data-id', data[i].id);
             campaignRows.append(campaignCard.html());
             App.names.push(data[i].name);
           }
         });
-    } else if (window.location.href.includes('/mycampaigns')){
+    } else if (window.location.href.includes('/campaigns/created')){
 
         web3.eth.getAccounts(function(error, accounts) {
           var createdBy = accounts[0];
           fetch(`${App.backendUrl}/query/campaigns/created?createdBy=${createdBy}`)
           .then(resp => resp.json())
           .then(data => {
-            console.log(data);  
             var campaignRows = $('#campaignRows');
             var campaignCardTemplate = $('#campaignCard');
 
-            for (i = 0; i < 2; i ++) {
+            for (i = 0; i < data.length; i ++) {
               var campaignCard = campaignCardTemplate;
               campaignCard.find('.card-title').text(data[i].title);
               campaignCard.find('.card-description').text(data[i].description);
               campaignCard.find('.card-target').text(`Target : ${data[i]['target']} ETH`);
-              campaignCard.find('.progress-bar').attr('aria-valuenow',data[i]['amount_raised']);
+              campaignCard.find('.progress-bar').attr('aria-valuenow',data[i]['funds_raised']);
               campaignCard.find('.progress-bar').attr('aria-valuemax',data[i]['target']);
-              campaignCard.find('.progress-bar').attr('style',`width: ${1+data[i]['amount_raised']*100/data[i]['target']}%;`);
-              campaignCard.find('.progress-bar').text(data[i]['amount_raised']);
+              var width = data[i]['funds_raised']*100/data[i]['target']
+              if (width != 0) width+=5
+              campaignCard.find('.progress-bar').attr('style',`width: ${width}%;`);
+              campaignCard.find('.progress-bar').text(data[i]['funds_raised']);
               var status = data[i]['status'];
               campaignCard.find('.card-status').text(`Status : ${status}`);
               campaignCard.find('.btn-expire').attr('data-id', data[i].id);
@@ -79,10 +82,13 @@ App = {
               campaignCard.find('.card-description').text(data[i]['description']);
               campaignCard.find('.card-target').text(`Target : ${data[i]['target']} ETH`);
               campaignCard.find('.card-donation').text(`Donated : ${data[i]['amount_donated']} ETH`);
-              campaignCard.find('.progress-bar').attr('aria-valuenow',data[i]['amount_raised']);
+              campaignCard.find('.card-status').text(`Status : ${data[i]['status']}`);
+              campaignCard.find('.progress-bar').attr('aria-valuenow',data[i]['funds_raised']);
               campaignCard.find('.progress-bar').attr('aria-valuemax',data[i]['target']);
-              campaignCard.find('.progress-bar').attr('style',`width: ${5+data[i]['amount_raised']*100/data[i]['target']}%;`);
-              campaignCard.find('.progress-bar').text(data[i]['amount_raised']);
+              var width = data[i]['funds_raised']*100/data[i]['target']
+              if (width != 0) width+=5
+              campaignCard.find('.progress-bar').attr('style',`width: ${width}%;`);
+              campaignCard.find('.progress-bar').text(data[i]['funds_raised']);
               campaignRows.append(campaignCard.html());
               App.names.push(data[i].name);
             }
@@ -158,20 +164,22 @@ App = {
                   })
                   .then(resp => console.log(resp));
                   if (result.logs[1] != null){
-                    var stateTransition = result.logs[1].args;
+                    var transition = result.logs[1].args;
+                    status_list = ["OPEN","CLOSED","EXPIRED"];
 
-                    fetch('http://localhost:3000/campaigns/update',{
+                    fetch('http://localhost:3000/query/campaigns/update',{
                       method: "POST",
                       headers:{'content-type': 'application/json'},
                       body: JSON.stringify({
-                        "campaignId": parseInt(stateTransition['campaignId']),
-                        "state": parseInt(stateTransition['state'])
+                        "campaignId": parseInt(transition['campaignId']),
+                        "status": status_list[parseInt(transition['status'])]
                       })
                     })
                     .then(resp => console.log(resp));
                   }
 
                   alert(account + " donation done successfully");
+                  location.href = `${App.backendUrl}/campaigns`;
                 }
                 
                 else
@@ -185,21 +193,18 @@ App = {
 
   handleCreateCampaign: function(event) {
     event.preventDefault();
-    var campaignId = parseInt($(event.target).data('id'));
-    //var amount = parseInt(event.target.previousElementSibling.value);
     var donationsInstance;
-    var ta1=parseInt($('#target').val());
-    var de=parseInt($('#deposit').val());
+    var target=$('#target').val();
     var desc=$('#description').val();
-    
+    var title=$('#title').val();
+    var vendor=$('#vendor').val();
+
     web3.eth.getAccounts(function(error, accounts) {
       var account = accounts[0];
-      console.log(account);
+
       App.contracts.donations.deployed().then(function(instance) {
         donationsInstance = instance;
-
-        event = donationsInstance.createCampaign(ta1,account, {from: account});
-        return event;
+        return donationsInstance.createCampaign(target+'0'.repeat(18), vendor, {from: account, value: parseInt(target)*1e17});
       }).then(function(result, err){
           if(result){
                 console.log(result.logs);
@@ -212,19 +217,19 @@ App = {
                     headers:{'Content-Type': 'application/json'},
                     body: JSON.stringify({
                       "campaignId": parseInt(campaignEvent['campaignId']),
-                      "created_by":campaignEvent['createdBy'],
-                      "vendor":campaignEvent['address'],
+                      "createdBy":campaignEvent['createdBy'],
+                      "vendor":campaignEvent['vendor'],
+                      "title": title,
                       "description": desc,
-                      "amountRequired": ta1,
-                      "deposit": de,
+                      "target": campaignEvent['target']/1e18,
+                      "deposit": campaignEvent['deposit']/1e18,
                     })
                   })
                   .then(resp => console.log(resp));
                   
-
                   alert(account + " Campaign created successfully");
+                  location.href = `${App.backendUrl}/campaigns/created`;
                 }
-                
                 else
                 alert(account + " Campaign creation failed due to revert")
             } else {
@@ -232,10 +237,7 @@ App = {
             }   
         });
     });
-    
-    // alert("Campaign has been created.");
-    // location.href = `${App.backendUrl}/mycampaigns`;
-    
+
   },
 
   handleExpiry: function(event) {
@@ -248,33 +250,34 @@ App = {
 
       App.contracts.donations.deployed().then(function(instance) {
         donationsInstance = instance;
-        const donations = [];
+        var donations = [];
         fetch(`${App.backendUrl}/query/donations?campaignId=${campaignId}`)
         .then(resp => resp.json())
         .then(data => {
           for (var i=0;i<data.length;i++){
-            donations.push([data[i]["donated_by"],data[i]["amount"]]);
+            donations.push([data[i]["donated_by"],data[i]["amount"]+'0'.repeat(18)]);
           }
+
           donationsInstance.expireCampaign(campaignId, donations,{from: account}).then(function(result, err){
             if(result){
                 console.log(result.logs);
                 console.log(result.receipt.status);
                 if(result.receipt.status == true){   
 
-                  var eventArgs = result.logs[0].args;
+                  var transition = result.logs[0].args;
+                  status_list = ["OPEN","CLOSED","EXPIRED"];
 
-                  // fetch('http://localhost:3000/donations/add',{
-                  //   method: "POST",
-                  //   headers:{'content-type': 'application/json'},
-                  //   body: JSON.stringify({
-                  //     "campaignId": parseInt(eventArgs['campaignId']),
-                  //     "donatedBy": eventArgs['_from'],
-                  //     "amount": parseInt(eventArgs['_value'])/1e18,
-                  //   })
-                  // })
-                  // .then(resp => console.log(resp));
-
+                  fetch('http://localhost:3000/query/campaigns/update',{
+                    method: "POST",
+                    headers:{'content-type': 'application/json'},
+                    body: JSON.stringify({
+                      "campaignId": parseInt(transition['campaignId']),
+                      "status": status_list[parseInt(transition['status'])]
+                    })
+                  })
+                  .then(resp => console.log(resp));
                   alert(account + " Refunds done successfully");
+                  location.href = `${App.backendUrl}/campaigns/created`;
                 }
                 
                 else
