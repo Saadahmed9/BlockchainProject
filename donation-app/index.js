@@ -50,7 +50,7 @@ app.get('/query/campaigns/open', function (req, res) {
 });
 
 app.post('/query/campaigns/add', function (req, res) {
-  con.query(`INSERT INTO campaigns (id, created_by, status, vendor, description, target, deposit, amount_raised) VALUES ('1','${req.body['created_by']}','OPEN','${req.body['vendor']}','${req.body['description']}', '${req.body['amountRequired']}','${req.body['deposit']}','0')`);
+  con.query(`INSERT INTO campaigns (id, created_by, status, vendor, description, target, deposit, amount_raised) VALUES ('${req.body['campaignID']}','${req.body['created_by']}','OPEN','${req.body['vendor']}','${req.body['description']}', '${req.body['amountRequired']}','${req.body['deposit']}','0')`);
   res.sendStatus(200);
 });
 
