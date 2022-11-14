@@ -32,7 +32,7 @@ App = {
             App.names.push(data[i].name);
           }
         });
-    } else if (window.location.href.includes('/campaigns/created')){
+    } else if (window.location.href.includes('/mycampaigns')){
 
         web3.eth.getAccounts(function(error, accounts) {
           var createdBy = accounts[0];
@@ -179,7 +179,7 @@ App = {
                   }
 
                   alert(account + " donation done successfully");
-                  location.href = `${App.backendUrl}/campaigns`;
+                  location.href = `${App.backendUrl}/campaigns/donated`;
                 }
                 
                 else
@@ -228,7 +228,7 @@ App = {
                   .then(resp => console.log(resp));
                   
                   alert(account + " Campaign created successfully");
-                  location.href = `${App.backendUrl}/campaigns/created`;
+                  location.href = `${App.backendUrl}/mycampaigns`;
                 }
                 else
                 alert(account + " Campaign creation failed due to revert")
@@ -277,7 +277,7 @@ App = {
                   })
                   .then(resp => console.log(resp));
                   alert(account + " Refunds done successfully");
-                  location.href = `${App.backendUrl}/campaigns/created`;
+                  location.href = `${App.backendUrl}/mycampaigns`;
                 }
                 
                 else

@@ -32,7 +32,7 @@ app.get('/campaigns', function (req, res) {
   res.render('campaigns.html');
 });
 
-app.get('/campaigns/created', function (req, res) {
+app.get('/mycampaigns', function (req, res) {
   res.render('campaigns_created.html');
 });
 
