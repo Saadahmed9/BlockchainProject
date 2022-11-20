@@ -9,12 +9,10 @@ app.engine('html', engines.ejs);
 app.set('view engine', 'html');
 app.use(express.json());
 app.use(express.static('src'));
-app.use(express.static('../donation-contract/build/contracts'));
+// app.use(express.static('../donation-contract/build/contracts'));
 
 const dotenv = require('dotenv');
 dotenv.config();
-
-console.log(process.env.SQL_HOST);
 
 var con = mysql.createConnection({
   host: process.env.SQL_HOST,

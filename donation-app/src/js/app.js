@@ -113,7 +113,7 @@ App = {
   },
 
   initContract: function() {
-      $.getJSON('Donations.json', function(data) {
+      $.getJSON('abi/Donations.json', function(data) {
     // Get the necessary contract artifact file and instantiate it with truffle-contract
     var donationsArtifact = data;
     App.contracts.donations = TruffleContract(donationsArtifact);
