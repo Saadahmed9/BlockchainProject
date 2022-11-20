@@ -134,7 +134,7 @@ App = {
   handleDonation: function(event) {
     event.preventDefault();
     var campaignId = parseInt($(event.target).data('id'));
-    var amount = parseInt(event.target.previousElementSibling.value);
+    var amount = parseFloat(event.target.previousElementSibling.value);
     var donationsInstance;
 
     web3.eth.getAccounts(function(error, accounts) {
@@ -204,7 +204,7 @@ App = {
 
       App.contracts.donations.deployed().then(function(instance) {
         donationsInstance = instance;
-        return donationsInstance.createCampaign(target+'0'.repeat(18), vendor, {from: account, value: parseInt(target)*1e17});
+        return donationsInstance.createCampaign((target*1e18).toString(), vendor, {from: account, value: parseInt(target)*1e17});
       }).then(function(result, err){
           if(result){
                 console.log(result.logs);
@@ -255,7 +255,7 @@ App = {
         .then(resp => resp.json())
         .then(data => {
           for (var i=0;i<data.length;i++){
-            donations.push([data[i]["donated_by"],data[i]["amount"]+'0'.repeat(18)]);
+            donations.push([data[i]["donated_by"],(data[i]["amount"]*1e18).toString()]);
           }
 
           donationsInstance.expireCampaign(campaignId, donations,{from: account}).then(function(result, err){

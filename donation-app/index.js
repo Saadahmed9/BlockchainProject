@@ -11,10 +11,15 @@ app.use(express.json());
 app.use(express.static('src'));
 app.use(express.static('../donation-contract/build/contracts'));
 
+const dotenv = require('dotenv');
+dotenv.config();
+
+console.log(process.env.SQL_HOST);
+
 var con = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "password",
+  host: process.env.SQL_HOST,
+  user: process.env.SQL_USER,
+  password: process.env.SQL_PASS,
   database: "donations"
 });
 
@@ -83,6 +88,6 @@ app.get('/query/donations', function (req, res) {
   });
 });
 
-app.listen(3000, function () {
+app.listen(process.env.PORT || 3000, function () {
   console.log('Example app listening on port 3000!');
 });
