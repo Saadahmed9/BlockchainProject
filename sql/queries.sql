@@ -35,3 +35,14 @@ CREATE TABLE donations (
 );
 
 select * from donations;
+
+drop table airdrops;
+
+CREATE TABLE airdrops (
+    address VARCHAR(255) NOT NULL,
+    PRIMARY KEY (address)
+);
+
+describe airdrops
+
+select * from airdrops where address='123'

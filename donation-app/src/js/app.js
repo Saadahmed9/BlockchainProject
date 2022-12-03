@@ -9,6 +9,19 @@ App = {
   init: function() {
     App.initWeb3();
 
+    web3.eth.getAccounts(function(error, accounts) {
+      fetch(`${App.backendUrl}/query/airdrop/check?address=${accounts[0]}`)
+          .then(resp => resp.json())
+          .then(data => {
+            if(!data['isPresent']){
+              $('#airdrop').append(
+                '<button type="button" class="btn btn-success btn-lg mt-5 mx-5 px-5" style="float:right;">Get Free DTC</button>'
+              );
+              $('#airdrop').attr('style','height:100px;');
+            }
+          });
+    });
+
     if (window.location.href.endsWith('/campaigns')){
       fetch(`${App.backendUrl}/query/campaigns/open`)
         .then(resp => resp.json())
@@ -95,6 +108,7 @@ App = {
           });
         });
     }
+    
   },
 
   initWeb3: function() {

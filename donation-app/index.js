@@ -86,6 +86,32 @@ app.get('/query/donations', function (req, res) {
   });
 });
 
+app.get('/query/airdrop/check', function (req, res) {
+  con.query(`SELECT * from airdrops where address='${req.query['address']}'`, function (err, result) {
+
+    if (result && result.length == 0){
+      res.json({'isPresent':false});
+    }else{
+      res.json({'isPresent':true});
+    }
+  });
+});
+
+
+app.post('/query/airdrop/add', function (req, res) {
+  con.query(`SELECT * from airdrops where address=${req.body['address']}`, function (err, result) {
+    if (result.length == 0){
+      con.query(`INSERT INTO airdrops (address) VALUES ('${req.body['address']}')`, function (err, result) {
+        res.sendStatus(200);
+      });
+    }else{
+      res.sendStatus(500);
+    }
+  });
+});
+
+
+
 app.listen(process.env.PORT || 3000, function () {
   console.log('Example app listening on port 3000!');
 });
