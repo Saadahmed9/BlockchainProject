@@ -9,19 +9,6 @@ App = {
   init: function() {
     App.initWeb3();
 
-    web3.eth.getAccounts(function(error, accounts) {
-      fetch(`${App.backendUrl}/query/airdrop/check?address=${accounts[0]}`)
-          .then(resp => resp.json())
-          .then(data => {
-            if(!data['isPresent']){
-              $('#airdrop').append(
-                '<button type="button" class="btn btn-success btn-lg mt-5 mx-5 px-5" style="float:right;">Get Free DTC</button>'
-              );
-              $('#airdrop').attr('style','height:100px;');
-            }
-          });
-    });
-
     if (window.location.href.endsWith('/campaigns')){
       fetch(`${App.backendUrl}/query/campaigns/open`)
         .then(resp => resp.json())
@@ -41,6 +28,7 @@ App = {
             campaignCard.find('.progress-bar').attr('style',`width: ${width}%;`);
             campaignCard.find('.progress-bar').text(data[i]['funds_raised']);
             campaignCard.find('.btn-donate').attr('data-id', data[i].id);
+            campaignCard.find('.btn-donatedtc').attr('data-id', data[i].id);
             campaignRows.append(campaignCard.html());
             App.names.push(data[i].name);
           }
@@ -108,7 +96,6 @@ App = {
           });
         });
     }
-    
   },
 
   initWeb3: function() {
@@ -127,7 +114,7 @@ App = {
   },
 
   initContract: function() {
-      $.getJSON('abi/Donations.json', function(data) {
+      $.getJSON('Donations.json', function(data) {
     // Get the necessary contract artifact file and instantiate it with truffle-contract
     var donationsArtifact = data;
     App.contracts.donations = TruffleContract(donationsArtifact);
@@ -142,67 +129,72 @@ App = {
   bindEvents: function() {
     $(document).on('click', '.btn-donate', App.handleDonation);
     $(document).on('click', '.btn-expire', App.handleExpiry);
+    $(document).on('click', '.btn-donatedtc', App.handleDonationDTC);
+    $(document).on('click', '.btn-getdtc', App.handleGetDTC);
+    $(document).on('click', '.btn-balancedtc', App.handleBalanceDTC);
     $("form").submit(App.handleCreateCampaign);
   },
 
-  handleDonation: function(event) {
+  handleGetDTC: function(event) {
     event.preventDefault();
-    var campaignId = parseInt($(event.target).data('id'));
-    var amount = parseFloat(event.target.previousElementSibling.value);
     var donationsInstance;
-
     web3.eth.getAccounts(function(error, accounts) {
       var account = accounts[0];
 
       App.contracts.donations.deployed().then(function(instance) {
         donationsInstance = instance;
-
-        event = donationsInstance.donate(campaignId, {from: account, value: amount*1e18});
+      
+        event = donationsInstance.transfertoken({from: account});
         return event;
       }).then(function(result, err){
             if(result){
                 console.log(result.logs);
                 console.log(result.receipt.status);
                 if(result.receipt.status == true){   
-
                   var donationEvent = result.logs[0].args;
-
-                  fetch(`${App.backendUrl}/query/donations/add`,{
-                    method: "POST",
-                    headers:{'content-type': 'application/json'},
-                    body: JSON.stringify({
-                      "campaignId": parseInt(donationEvent['campaignId']),
-                      "donatedBy": donationEvent['_from'],
-                      "amount": parseInt(donationEvent['_value'])/1e18,
-                    })
-                  })
-                  .then(resp => console.log(resp));
-                  if (result.logs[1] != null){
-                    var transition = result.logs[1].args;
-                    status_list = ["OPEN","CLOSED","EXPIRED"];
-
-                    fetch('http://localhost:3000/query/campaigns/update',{
-                      method: "POST",
-                      headers:{'content-type': 'application/json'},
-                      body: JSON.stringify({
-                        "campaignId": parseInt(transition['campaignId']),
-                        "status": status_list[parseInt(transition['status'])]
-                      })
-                    })
-                    .then(resp => console.log(resp));
-                  }
-
-                  alert(account + " donation done successfully");
-                  location.href = `${App.backendUrl}/campaigns/donated`;
+                  alert(parseInt(donationEvent['to_'])+ " received 20 free DTC ");
+                  location.href = `${App.backendUrl}/campaigns`;
                 }
                 
                 else
-                alert(account + " donation not done successfully due to revert")
+                alert(receiver + " did not receive DTC due to revert")
             } else {
-                alert(account + " donation failed")
+                alert("receiveing DTC failed")
             }   
         });
     });
+    
+    
+  },
+
+  handleBalanceDTC: function(event) {
+    event.preventDefault();
+    var donationsInstance;
+    web3.eth.getAccounts(function(error, accounts) {
+      var account = accounts[0];
+      App.contracts.donations.deployed().then(function(instance) {
+        donationsInstance = instance;
+        event = donationsInstance.DtcBalance({from:account});
+        return event;
+      }).then(function(result, err){
+            if(result){
+                console.log(result.logs);
+                console.log(result.receipt.status);
+                if(result.receipt.status == true){   
+                  var donationEvent = result.logs[0].args;
+                  alert("you have "+parseInt(donationEvent['numTokens'])+" DTC");
+                  location.href = `${App.backendUrl}/campaigns`;
+                }
+                
+                else
+                alert("error");
+            } else {
+                alert("getting info regarding DTC failed");
+            }   
+        });
+    });
+    
+    
   },
 
   handleCreateCampaign: function(event) {
@@ -218,7 +210,7 @@ App = {
 
       App.contracts.donations.deployed().then(function(instance) {
         donationsInstance = instance;
-        return donationsInstance.createCampaign((target*1e18).toString(), vendor, {from: account, value: parseInt(target)*1e17});
+        return donationsInstance.createCampaign(target+'0'.repeat(18), vendor, {from: account, value: parseInt(target)*1e17});
       }).then(function(result, err){
           if(result){
                 console.log(result.logs);
@@ -253,6 +245,70 @@ App = {
     });
 
   },
+  handleDonationDTC: function(event) {
+    event.preventDefault();
+    var campaignId = parseInt($(event.target).data('id'));
+    var amount = parseInt(event.target.previousElementSibling.value);
+    var tokens=$('#tokenamount').val();
+    var donationsInstance;
+
+    web3.eth.getAccounts(function(error, accounts) {
+      var account = accounts[0];
+
+      App.contracts.donations.deployed().then(function(instance) {
+        donationsInstance = instance;
+        //event = donationsInstance.donate(campaignId, {from: account, value: amount*1e18});
+        event = donationsInstance.donate(campaignId,tokens,{from: account});
+        return event;
+      }).then(function(result, err){
+            if(result){
+                console.log(result.logs);
+                console.log(result.receipt.status);
+                if(result.receipt.status == true){   
+
+                  var donationEvent = result.logs[0].args;
+
+                  fetch(`${App.backendUrl}/query/donations/add`,{
+                    method: "POST",
+                    headers:{'content-type': 'application/json'},
+                    body: JSON.stringify({
+                      "campaignId": parseInt(donationEvent['campaignId']),
+                      "donatedBy": donationEvent['_from'],
+                      "amount": parseInt(donationEvent['numTokens']),
+                      //"amount": tokens,
+                    })
+                  })
+                  .then(resp => console.log(resp));
+                  if (result.logs[1] != null){
+                    var transition = result.logs[1].args;
+                    status_list = ["OPEN","CLOSED","EXPIRED"];
+
+                    fetch('http://localhost:3000/query/campaigns/update',{
+                      method: "POST",
+                      headers:{'content-type': 'application/json'},
+                      body: JSON.stringify({
+                        "campaignId": parseInt(transition['campaignId']),
+                        "status": status_list[parseInt(transition['status'])]
+                      })
+                    })
+                    .then(resp => console.log(resp));
+                  }
+
+                  alert(account + " donation done successfully");
+                  location.href = `${App.backendUrl}/campaigns/donated`;
+                }
+                
+                else
+                alert(account + " donation not done successfully due to revert")
+            } else {
+                alert(account + " donation failed")
+            }   
+        });
+    });
+  },
+
+
+
 
   handleExpiry: function(event) {
     event.preventDefault();
@@ -269,7 +325,7 @@ App = {
         .then(resp => resp.json())
         .then(data => {
           for (var i=0;i<data.length;i++){
-            donations.push([data[i]["donated_by"],(data[i]["amount"]*1e18).toString()]);
+            donations.push([data[i]["donated_by"],data[i]["amount"]+'0'.repeat(18)]);
           }
 
           donationsInstance.expireCampaign(campaignId, donations,{from: account}).then(function(result, err){
