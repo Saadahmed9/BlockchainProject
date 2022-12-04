@@ -9,6 +9,20 @@ App = {
   init: function() {
     App.initWeb3();
 
+    web3.eth.getAccounts(function(error, accounts) {
+
+      fetch(`${App.backendUrl}/query/airdrop/check?address=${accounts[0]}`)
+          .then(resp => resp.json())
+          .then(data => {
+            if(!data['isPresent']){
+              $('#airdrop').append(
+                '<a type="button" id="test" class="btn btn-success btn-airdrop btn-lg mx-5 px-5" href="#" style="float:right;">Get Free DTC</a>'
+              );
+              $('#airdrop').attr('style','height:60px;');
+            }
+          });
+    });
+
     if (window.location.href.endsWith('/campaigns')){
       fetch(`${App.backendUrl}/query/campaigns/open`)
         .then(resp => resp.json())
@@ -20,7 +34,7 @@ App = {
           for (i = 0; i < data.length; i ++) {
             campaignCard.find('.card-title').text(data[i].title);
             campaignCard.find('.card-description').text(data[i].description);
-            campaignCard.find('.card-target').text(`Target : ${data[i]['target']} ETH`);
+            campaignCard.find('.card-target').text(`Target : ${data[i]['target']} DTC`);
             campaignCard.find('.progress-bar').attr('aria-valuenow',data[i]['funds_raised']);
             campaignCard.find('.progress-bar').attr('aria-valuemax',data[i]['target']);
             var width = data[i]['funds_raised']*100/data[i]['target']
@@ -47,7 +61,7 @@ App = {
               var campaignCard = campaignCardTemplate;
               campaignCard.find('.card-title').text(data[i].title);
               campaignCard.find('.card-description').text(data[i].description);
-              campaignCard.find('.card-target').text(`Target : ${data[i]['target']} ETH`);
+              campaignCard.find('.card-target').text(`Target : ${data[i]['target']} DTC`);
               campaignCard.find('.progress-bar').attr('aria-valuenow',data[i]['funds_raised']);
               campaignCard.find('.progress-bar').attr('aria-valuemax',data[i]['target']);
               var width = data[i]['funds_raised']*100/data[i]['target']
@@ -81,8 +95,8 @@ App = {
             for (i = 0; i < data.length; i ++) {
               campaignCard.find('.card-title').text(data[i]['title']);
               campaignCard.find('.card-description').text(data[i]['description']);
-              campaignCard.find('.card-target').text(`Target : ${data[i]['target']} ETH`);
-              campaignCard.find('.card-donation').text(`Donated : ${data[i]['amount_donated']} ETH`);
+              campaignCard.find('.card-target').text(`Target : ${data[i]['target']} DTC`);
+              campaignCard.find('.card-donation').text(`Donated : ${data[i]['amount_donated']} DTC`);
               campaignCard.find('.card-status').text(`Status : ${data[i]['status']}`);
               campaignCard.find('.progress-bar').attr('aria-valuenow',data[i]['funds_raised']);
               campaignCard.find('.progress-bar').attr('aria-valuemax',data[i]['target']);
@@ -130,7 +144,7 @@ App = {
     $(document).on('click', '.btn-donate', App.handleDonation);
     $(document).on('click', '.btn-expire', App.handleExpiry);
     $(document).on('click', '.btn-donatedtc', App.handleDonationDTC);
-    $(document).on('click', '.btn-getdtc', App.handleGetDTC);
+    $(document).on('click', '.btn-airdrop', App.handleGetDTC);
     $(document).on('click', '.btn-balancedtc', App.handleBalanceDTC);
     $("form").submit(App.handleCreateCampaign);
   },
@@ -141,30 +155,38 @@ App = {
     web3.eth.getAccounts(function(error, accounts) {
       var account = accounts[0];
 
-      App.contracts.donations.deployed().then(function(instance) {
-        donationsInstance = instance;
-      
-        event = donationsInstance.transfertoken({from: account});
-        return event;
-      }).then(function(result, err){
-            if(result){
-                console.log(result.logs);
-                console.log(result.receipt.status);
-                if(result.receipt.status == true){   
-                  var donationEvent = result.logs[0].args;
-                  alert(parseInt(donationEvent['to_'])+ " received 20 free DTC ");
-                  location.href = `${App.backendUrl}/campaigns`;
-                }
-                
-                else
-                alert(receiver + " did not receive DTC due to revert")
-            } else {
-                alert("receiveing DTC failed")
-            }   
-        });
+      fetch(`${App.backendUrl}/query/airdrop/add`,{
+        method: "POST",
+        headers:{'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          "address": account
+        })
+      }).then(response => {
+        if (response.ok) {
+          App.contracts.donations.deployed().then(function(instance) {
+            donationsInstance = instance;
+            event = donationsInstance.transfertoken({from: account});
+            return event;
+          }).then(function(result, err){
+                if(result){
+                    console.log(result.logs);
+                    console.log(result.receipt.status);
+                    if(result.receipt.status == true){   
+                      var donationEvent = result.logs[0].args;
+                      alert(parseInt(donationEvent['to_'])+ " received 20 free DTC ");
+                      location.href = `${App.backendUrl}/campaigns`;
+                    }
+                    else
+                    alert(receiver + " did not receive DTC due to revert")
+                } else {
+                    alert("receiveing DTC failed")
+                }   
+            });
+        }else{
+          alert("receiveing DTC failed")
+        }
+      });
     });
-    
-    
   },
 
   handleBalanceDTC: function(event) {
@@ -178,23 +200,18 @@ App = {
         return event;
       }).then(function(result, err){
             if(result){
-                console.log(result.logs);
-                console.log(result.receipt.status);
                 if(result.receipt.status == true){   
                   var donationEvent = result.logs[0].args;
-                  alert("you have "+parseInt(donationEvent['numTokens'])+" DTC");
-                  location.href = `${App.backendUrl}/campaigns`;
+                  alert("You Have "+parseInt(donationEvent['numTokens'])+" DTC");
                 }
-                
                 else
                 alert("error");
             } else {
                 alert("getting info regarding DTC failed");
             }   
         });
+
     });
-    
-    
   },
 
   handleCreateCampaign: function(event) {
@@ -273,7 +290,7 @@ App = {
                     headers:{'content-type': 'application/json'},
                     body: JSON.stringify({
                       "campaignId": parseInt(donationEvent['campaignId']),
-                      "donatedBy": donationEvent['_from'],
+                      "donatedBy": donationEvent['from'],
                       "amount": parseInt(donationEvent['numTokens']),
                       //"amount": tokens,
                     })

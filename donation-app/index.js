@@ -9,7 +9,7 @@ app.engine('html', engines.ejs);
 app.set('view engine', 'html');
 app.use(express.json());
 app.use(express.static('src'));
-// app.use(express.static('../donation-contract/build/contracts'));
+app.use(express.static('../donation-contract/build/contracts'));
 
 const dotenv = require('dotenv');
 dotenv.config();
@@ -99,15 +99,14 @@ app.get('/query/airdrop/check', function (req, res) {
 
 
 app.post('/query/airdrop/add', function (req, res) {
-  con.query(`SELECT * from airdrops where address=${req.body['address']}`, function (err, result) {
-    if (result.length == 0){
-      con.query(`INSERT INTO airdrops (address) VALUES ('${req.body['address']}')`, function (err, result) {
-        res.sendStatus(200);
-      });
+  con.query(`INSERT INTO airdrops (address) VALUES ('${req.body['address']}')`, function (err, result) {
+    if(result){
+      res.sendStatus(200);
     }else{
       res.sendStatus(500);
     }
   });
+  
 });
 
 
