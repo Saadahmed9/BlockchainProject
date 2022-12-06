@@ -227,7 +227,7 @@ App = {
 
       App.contracts.donations.deployed().then(function(instance) {
         donationsInstance = instance;
-        return donationsInstance.createCampaign(target+'0'.repeat(18), vendor, {from: account, value: parseInt(target)*1e17});
+        return donationsInstance.createCampaign(target+'0'.repeat(18), vendor, {from: account});
       }).then(function(result, err){
           if(result){
                 console.log(result.logs);
@@ -245,7 +245,7 @@ App = {
                       "title": title,
                       "description": desc,
                       "target": campaignEvent['target']/1e18,
-                      "deposit": campaignEvent['deposit']/1e18,
+                      "deposit": campaignEvent['deposit'],
                     })
                   })
                   .then(resp => console.log(resp));
@@ -342,7 +342,7 @@ App = {
         .then(resp => resp.json())
         .then(data => {
           for (var i=0;i<data.length;i++){
-            donations.push([data[i]["donated_by"],data[i]["amount"]+'0'.repeat(18)]);
+            donations.push([data[i]["donated_by"],data[i]["amount"]]);
           }
 
           donationsInstance.expireCampaign(campaignId, donations,{from: account}).then(function(result, err){
