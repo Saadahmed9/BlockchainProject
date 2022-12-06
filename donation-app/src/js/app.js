@@ -81,7 +81,7 @@ App = {
             }
           });
         });
-    } else if(window.location.href.includes('/campaigns/donated')){
+    } else if(window.location.href.includes('/donations')){
         web3.eth.getAccounts(function(error, accounts) {
           var donatedBy = accounts[0];
     
@@ -196,21 +196,15 @@ App = {
       var account = accounts[0];
       App.contracts.donations.deployed().then(function(instance) {
         donationsInstance = instance;
-        event = donationsInstance.DtcBalance({from:account});
+        event = donationsInstance.DtcBalance(account,{from:account});
         return event;
       }).then(function(result, err){
-            if(result){
-                if(result.receipt.status == true){   
-                  var donationEvent = result.logs[0].args;
-                  alert("You Have "+parseInt(donationEvent['numTokens'])+" DTC");
-                }
-                else
-                alert("error");
+            if(result ){
+                alert("You Have "+parseInt(result)+" DTC");
             } else {
-                alert("getting info regarding DTC failed");
+                alert("Failed to fetch DTC Balance");
             }   
         });
-
     });
   },
 
@@ -227,7 +221,7 @@ App = {
 
       App.contracts.donations.deployed().then(function(instance) {
         donationsInstance = instance;
-        return donationsInstance.createCampaign(target+'0'.repeat(18), vendor, {from: account});
+        return donationsInstance.createCampaign(target, vendor, {from: account});
       }).then(function(result, err){
           if(result){
                 console.log(result.logs);
@@ -244,8 +238,8 @@ App = {
                       "vendor":campaignEvent['vendor'],
                       "title": title,
                       "description": desc,
-                      "target": campaignEvent['target']/1e18,
-                      "deposit": campaignEvent['deposit'],
+                      "target": parseInt(campaignEvent['target']),
+                      "deposit": parseInt(campaignEvent['deposit']),
                     })
                   })
                   .then(resp => console.log(resp));
@@ -312,7 +306,7 @@ App = {
                   }
 
                   alert(account + " donation done successfully");
-                  location.href = `${App.backendUrl}/campaigns/donated`;
+                  location.href = `${App.backendUrl}/donations`;
                 }
                 
                 else

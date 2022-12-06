@@ -35,11 +35,12 @@ contract Donations {
     mapping(uint => Campaign) public campaigns;
     uint public counter;
     uint public percentToDeposit;
+    address deployer;
     //address receiver;
     constructor (uint256 total) {
         counter = 0;
         totalSupply_ = total;
-	    balances[msg.sender] = totalSupply_;
+        deployer = msg.sender;
     }  
 
     //event Donation(uint campaignId, address _from, uint _value);
@@ -82,21 +83,26 @@ contract Donations {
 	return totalSupply_;
     }
     
-    function DtcBalance() public {
-        emit GetBalance(balances[msg.sender]);
-        //return balances[account];
+    function DtcBalance(address account) public view returns (uint){
+        //emit GetBalance(balances[msg.sender]);
+        if (account == deployer){
+            return totalSupply_;
+        }
+        return balances[account];
     }
 
     function donate(uint campaignId, uint numTokens) public payable {
-        require(numTokens <= balances[msg.sender]);
+        //require(numTokens <= balances[msg.sender]);
         Campaign storage campaign = campaigns[campaignId];
+        require((campaign.fundsRaised+numTokens) <= campaign.target);
         campaign.fundsRaised += numTokens;
+       // }
         balances[msg.sender] = balances[msg.sender].sub(numTokens);
-        campaign.donationsHash = uint(keccak256(abi.encodePacked(campaign.donationsHash,numTokens,msg.sender)));
+        campaign.donationsHash = uint(keccak256(abi.encodePacked(campaign.donationsHash,numTokens+1,msg.sender)));
         emit Donation(campaignId,msg.sender, numTokens);
         if (campaign.fundsRaised == campaign.target){
-            campaign.vendor.transfer(campaign.target);
-            payable(campaign.createdBy).transfer(campaign.deposit);
+            transfertokentovendor(campaign.vendor,campaign.target);
+            transfertokentovendor(campaign.createdBy,campaign.deposit);
             closeCampaign(campaign,Status.CLOSED);
         }
     }
@@ -107,6 +113,11 @@ contract Donations {
         balances[msg.sender] = balances[msg.sender].add(numTokens);
         totalSupply_=totalSupply_-numTokens;
         emit TransferToken(address(this));
+        //return true;
+    }
+    function transfertokentovendor(address account,uint amount) public payable {
+        balances[account] = balances[account].add(amount);
+
         //return true;
     }
 
@@ -144,9 +155,9 @@ contract Donations {
     function expireCampaign(uint campaignId, Donor[] calldata donors) public validTransition(campaignId,Status.OPEN) {
         Campaign storage campaign = campaigns[campaignId];
         for (uint i=0;i<donors.length;i++){
-            payable(donors[i].donorAddress).transfer(donors[i].donatedAmount);
+            transfertokentovendor(donors[i].donorAddress, donors[i].donatedAmount);
         }
-        payable(campaign.createdBy).transfer(campaign.deposit);
+        transfertokentovendor(campaign.createdBy, campaign.deposit);
         closeCampaign(campaign, Status.EXPIRED);
     }
 

@@ -40,7 +40,7 @@ app.get('/mycampaigns', function (req, res) {
 });
 
 
-app.get('/campaigns/donated', function (req, res) {
+app.get('/donations', function (req, res) {
   res.render('campaigns_donated.html');
 });
 
@@ -53,7 +53,7 @@ app.get('/query/campaigns/open', function (req, res) {
 });
 
 app.post('/query/campaigns/add', function (req, res) {
-  con.query(`INSERT INTO campaigns (id, title, created_by, status, vendor, description, target, deposit, funds_raised) VALUES ('${req.body['campaignId']}','${req.body['title']}','${req.body['createdBy']}','OPEN','${req.body['vendor']}','${req.body['description']}', '${req.body['target']}','${req.body['deposit']}','0')`);
+  con.query(`INSERT INTO campaigns (id, title, created_by, status, vendor, description, target, deposit, funds_raised) VALUES ('${req.body['campaignId']}','${req.body['title']}','${req.body['createdBy']}','OPEN','${req.body['vendor']}','${req.body['description']}', ${req.body['target']},${req.body['deposit']},0)`);
   res.sendStatus(200);
 });
 
