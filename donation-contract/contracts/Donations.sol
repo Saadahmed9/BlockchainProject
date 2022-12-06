@@ -36,9 +36,8 @@ contract Donations {
     uint public counter;
     uint public percentToDeposit;
     //address receiver;
-    constructor (uint percentToDepositValue,uint256 total) {
+    constructor (uint256 total) {
         counter = 0;
-        percentToDeposit = percentToDepositValue;
         totalSupply_ = total;
 	    balances[msg.sender] = totalSupply_;
     }  
@@ -121,22 +120,11 @@ contract Donations {
         return allowed[owner][delegate];
     }
 
-    // function transferFrom(address owner, address buyer, uint numTokens) public returns (bool) {
-    //     require(numTokens <= balances[owner]);    
-    //     require(numTokens <= allowed[owner][msg.sender]);
-    
-    //     balances[owner] = balances[owner].sub(numTokens);
-    //     allowed[owner][msg.sender] = allowed[owner][msg.sender].sub(numTokens);
-    //     balances[buyer] = balances[buyer].add(numTokens);
-    //     emit Transfer(owner, buyer, numTokens);
-        
-    //     return true;
-    // }
-
 
     //Internal Functions
 
-    function createCampaign(uint amountRequired, address payable vendor) public payable validCreateCampaign(amountRequired) {
+    function createCampaign(uint amountRequired, address payable vendor) public payable {
+        uint deposit1=2;
         counter = counter + 1;
         Campaign storage campaign = campaigns[counter];
         campaign.id = counter;
@@ -145,26 +133,15 @@ contract Donations {
         campaign.createdBy = msg.sender;
         campaign.vendor = vendor;
         campaign.status = Status.OPEN;
-        campaign.deposit = msg.value;
+        campaign.deposit = deposit1;
         campaigns[counter] = campaign;
+        //deposit1=(percentToDeposit*amountRequired)/100;
+        balances[msg.sender] = balances[msg.sender].sub(deposit1);
         emit CreateCampaign(campaign.id,campaign.target,campaign.deposit,campaign.createdBy,campaign.vendor);
     }
 
-    // function donate(uint campaignId) public payable validTransition(campaignId, Status.OPEN) validDonation(campaignId) {
-    //     Campaign storage campaign = campaigns[campaignId];
-    //     campaign.fundsRaised += msg.value;
 
-    //     campaign.donationsHash = uint(keccak256(abi.encodePacked(campaign.donationsHash,msg.value,msg.sender)));
-    //     emit Donation(campaignId, msg.sender, msg.value);
-
-    //     if (campaign.fundsRaised == campaign.target){
-    //         campaign.vendor.transfer(campaign.target);
-    //         payable(campaign.createdBy).transfer(campaign.deposit);
-    //         closeCampaign(campaign,Status.CLOSED);
-    //     }
-    // }
-
-    function expireCampaign(uint campaignId, Donor[] calldata donors) public validTransition(campaignId,Status.OPEN) validExpireCampaign(campaignId,donors) {
+    function expireCampaign(uint campaignId, Donor[] calldata donors) public validTransition(campaignId,Status.OPEN) {
         Campaign storage campaign = campaigns[campaignId];
         for (uint i=0;i<donors.length;i++){
             payable(donors[i].donorAddress).transfer(donors[i].donatedAmount);
