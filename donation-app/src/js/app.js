@@ -165,19 +165,12 @@ App = {
         if (response.ok) {
           App.contracts.donations.deployed().then(function(instance) {
             donationsInstance = instance;
-            event = donationsInstance.transfertoken({from: account});
+            event = donationsInstance.getBalance({from: account});
             return event;
           }).then(function(result, err){
                 if(result){
-                    console.log(result.logs);
-                    console.log(result.receipt.status);
-                    if(result.receipt.status == true){   
-                      var donationEvent = result.logs[0].args;
-                      alert(parseInt(donationEvent['to_'])+ " received 20 free DTC ");
-                      location.href = `${App.backendUrl}/campaigns`;
-                    }
-                    else
-                    alert(receiver + " did not receive DTC due to revert")
+                  alert("Received 20 free DTC ");
+                  location.href = `${App.backendUrl}/campaigns`;
                 } else {
                     alert("receiveing DTC failed")
                 }   
@@ -196,7 +189,7 @@ App = {
       var account = accounts[0];
       App.contracts.donations.deployed().then(function(instance) {
         donationsInstance = instance;
-        event = donationsInstance.DtcBalance(account,{from:account});
+        event = donationsInstance.balanceOf(account,{from:account});
         return event;
       }).then(function(result, err){
             if(result ){
